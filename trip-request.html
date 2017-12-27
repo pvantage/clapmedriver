@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+<link type="text/css" rel="stylesheet" href="css/jquery.selectBoxIt.css" />
+<script src="js/jquery-ui.min.js"></script>
+<script src="js/jquery.selectBoxIt.min.js"></script>
+
+<script>
+jQuery(function($) {
+jQuery('select').selectBoxIt({ });
+});
+</script>
+
+</head>
+
+<body>
+<div class="wrapper trip-requestpage">
+
+  <div class="container">
+  <header>
+  <a href="notification.html"><img src="images/back.png"/>Trip Request</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox">
+	<div class="trip-request-cnt">
+	<div class="reqbox picuplocation-req">
+	<h1>Pickup Location</h1>
+	<p>&nbsp;</p>
+	</div>
+	<div class="reqbox drop-loc-req">
+	<h2>Drop Location</h2>
+	<p>&nbsp;</p>
+	</div>
+	<div class="accepted-time" style="display:none;">
+	<div class="picktimeleft" style="display:none;">
+	</div>
+	
+	<button class="submit-btn trip-accep">ACCEPT</button>
+		<button class="submit-btn trip-decline">DECLINE</button>
+		</div>
+	</div>
+
+
+    </div>
+
+	
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+var gototripdetail=false;
+jQuery(document).ready(function(){
+	
+		var h=jQuery(window).height();
+		jQuery('.phonepage').css({'height':h+'px','overflow':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var booking_id=gup('booking_id');
+	
+	var url=siteurl+'/api/driver/trips';
+	 jQuery.ajax({  
+	 type: 'POST',  
+	 url: url,           
+	 dataType: 'json',  
+	 data: {uid:uid,booking_id:booking_id,tripdetail:1}, 
+	 beforeSend: function() {
+		
+	 },		
+	 complete: function() {
+		
+	 }, 
+	 crossDomain: true,  
+	 success: function(res) { 
+		if(res['trip'])
+		{
+			jQuery('.picuplocation-req p').html(res['trip']['start_destination']);
+			jQuery('.drop-loc-req p').html(res['trip']['end_destination']);
+			if(res['trip']['trip_status']=='0'){
+				jQuery('.accepted-time').show();
+				timer(res['trip']['pick_date']);
+			}
+			else if(res['trip']['trip_status']=='1' && res['trip']['driver_id']==uid){
+				window.location='pickuppassenger.html?booking_id='+booking_id;
+			}
+			else if(res['trip']['trip_status']=='3' && res['trip']['driver_id']==uid){
+				window.location='waiting-for-passenger.html?booking_id='+booking_id;
+			}
+			else if(res['trip']['trip_status']=='4' && res['trip']['driver_id']==uid){
+				window.location='trip-in-progress.html?booking_id='+booking_id;
+			}
+		
+		}else {				
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">There is no trip.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		}
+		
+		return false; 
+	 },  
+	 error: function(response, d, a){
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Server Error.</div>';
+		jQuery('body').append(html);
+		setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+		return false; 
+	 }
+			
+   });
+   
+   jQuery('.trip-decline').click(function(){
+   		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,           
+		 dataType: 'json',  
+		 data: {uid:uid,booking_id:booking_id,declinetrip:1}, 
+		 beforeSend: function() {
+			
+		 },		
+		 complete: function() {
+			
+		 }, 
+		 crossDomain: true,  
+		 success: function(res) { 
+			if(res['success'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['success']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					window.location='notification.html';
+				},1000);
+			
+			}else {				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Something going wrong.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			}
+			
+			return false; 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false; 
+		 }
+				
+	   });
+   });
+	jQuery('.trip-accep').click(function(){
+   		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,           
+		 dataType: 'json',  
+		 data: {uid:uid,booking_id:booking_id,accepttrip:1}, 
+		 beforeSend: function() {
+			
+		 },		
+		 complete: function() {
+			
+		 }, 
+		 crossDomain: true,  
+		 success: function(res) { 
+			if(res['success'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['success']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					if(gototripdetail){
+						window.location='trip-detail.html?booking_id='+booking_id;
+					}
+					else
+					{
+						window.location='pickuppassenger.html?booking_id='+booking_id;
+					}
+					
+				},1000);
+			
+			}
+			else if(res['error'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['error']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					window.location='trip-request.html?booking_id='+booking_id;
+				},1000);
+			
+			}else {				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Something going wrong.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			}
+			
+			return false; 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false; 
+		 }
+				
+	   });
+   });
+	function timer(datetime){
+	  // Set the date we're counting down to
+		var countDownDate = new Date(datetime).getTime();
+		
+		// Update the count down every 1 second
+		var x = setInterval(function() {
+		
+		  // Get todays date and time
+		  var now = new Date().getTime();
+		
+		  // Find the distance between now an the count down date
+		  var distance = countDownDate - now;
+		
+		  // Time calculations for days, hours, minutes and seconds
+		  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+		  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+		  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+			var timetext='';
+			if(parseInt(days)>0){timetext=days + "d "+hours + "h "+minutes + "m "+seconds + "s ";gototripdetail=true;}
+			else if(parseInt(hours)>0){timetext=hours + "h "+minutes + "m "+seconds + "s ";gototripdetail=true;}
+			else if(parseInt(minutes)>0){timetext=minutes + "m "+seconds + "s ";gototripdetail=false;}
+			else {timetext=seconds + "s ";}
+		  jQuery('.picktimeleft').html('<h2>Time Left To Accept</h2><h1>'+timetext+'</h1>');
+		  
+		  // If the count down is finished, write some text
+		  if (distance < 0) {
+			clearInterval(x);
+			jQuery('.picktimeleft').hide();
+		  }
+		  else{
+		  	jQuery('.picktimeleft').show();
+		  }
+		}, 1000);
+	 }
+});
+
+</script>
+</body>
+</html>

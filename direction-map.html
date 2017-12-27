@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper pickup-passenger">
+
+  <div class="container">
+  <header>
+  <a href="" class="mainmenubtn"><img src="images/back.png"/>Map</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox pick-pasngr-inner">
+	<div class="picup-vehicle">
+	<div class="map-box" id="gmap">
+	</div>
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+</div>
+
+
+<!-- Modal -->
+
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdRw4y6QbeCa2AVoQcI_j7NMQZPYDrabU" type="text/javascript"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+	
+		var h=jQuery(window).height();
+		jQuery('#gmap').css({'height':h+'px','overflow-y':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var booking_id=gup('booking_id');
+	var from=gup('from');
+	var to=gup('to');
+	var returnpage=gup('returnpage');
+	if(returnpage!='')
+	{
+		if(booking_id!=''){
+			returnpage=returnpage+'?booking_id='+booking_id;
+		}
+		jQuery('a.mainmenubtn').attr('href',returnpage);
+	}
+	initMap(from,to);
+});
+
+function initMap(from,to) {
+        var directionsService = new google.maps.DirectionsService();
+         //var directionsDisplay = new google.maps.DirectionsRenderer();
+    
+         var map = new google.maps.Map(document.getElementById('gmap'), {
+           zoom:7,
+           mapTypeId: google.maps.MapTypeId.ROADMAP,
+         });
+        var directionsDisplay = new google.maps.DirectionsRenderer({
+          draggable: true,
+          map: map
+        });
+
+         directionsDisplay.setMap(map);
+         directionsDisplay.setPanel(document.getElementById('panel'));
+    
+         var request = {
+           origin: from, 
+           destination: to,
+           travelMode: google.maps.DirectionsTravelMode.DRIVING,
+		   travelMode: 'DRIVING',
+          avoidTolls: true
+
+         };
+    
+         directionsService.route(request, function(response, status) {
+           if (status == google.maps.DirectionsStatus.OK) {
+             directionsDisplay.setDirections(response);
+           }
+         });
+        
+      }
+
+      
+
+
+
+
+
+</script>
+
+</body>
+</html>

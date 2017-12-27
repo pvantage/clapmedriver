@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper otppage">
+
+  <div class="container">
+  <header>
+  <a href="phone.html"><img src="images/back.png"/>Verify Mobile</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox">
+	<div class="otp-ph-box">
+	<img src="images/ph.png"/>
+	</div>
+	<div class="heybox"><p>Hey There,<br>
+Welcome to</p>  <img src="images/cm.png"/></div>
+
+<div class="otp-phbox">
+Enter the four digit code send to your mobile number<br>
+</div>
+
+<div class="otp-inputs">
+<input type="number" name="num1" maxlength="1" tabindex="0"/>
+<input type="number" name="num2" maxlength="1" tabindex="1"/>
+<input type="number" name="num3" maxlength="1" tabindex="2"/>
+<input type="number" name="num4" maxlength="1" tabindex="3"/>
+</div>
+<input class="submit-btn" type="submit" value="Next"/>
+<a class="recendcode" href="javascript:;">Resend code</a>
+
+    </div>
+	
+	<div class="ph-btm-img">
+	<img src="images/inner-btm-bg.png"/>
+	</div>
+	</div>
+  </div>
+</div>
+<script type="text/javascript" src="js/validate.js"></script>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+	<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+
+jQuery(document).ready(function(){
+	
+		var h=jQuery(window).height();
+		jQuery('.phonepage').css({'height':h+'px','overflow':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	jQuery('.otp-inputs input').keyup(function(){
+		var v=jQuery(this).val();
+		if(jQuery.trim(v)!=''){
+			jQuery(this).next('input').focus();
+		}
+	});
+	jQuery('.otp-phbox').append('<a href="tel:'+localStorage.getItem('Driver_loginphone')+'">'+localStorage.getItem('Driver_loginphone')+'</a>');
+	jQuery('.submit-btn').click(function(){
+		var error=false;
+		jQuery('.otp-inputs input').each(function(){
+			var v=jQuery(this).val();
+			if(jQuery.trim(v)==''){
+				error=true;
+			}
+		});
+		var phone=localStorage.getItem('Driver_loginphone');
+		var url=siteurl+'/api/driver/login';
+		if(phone=='' || error)
+		{
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Please enter OPT.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false;
+		}
+		else
+		{
+			var opt=jQuery('.otp-inputs input[name="num1"]').val()+jQuery('.otp-inputs input[name="num2"]').val()+jQuery('.otp-inputs input[name="num3"]').val()+jQuery('.otp-inputs input[name="num4"]').val();
+			 jQuery.ajax({  
+			 type: 'POST',  
+			 url: url,           
+			 dataType: 'json',  
+			 data: {phone:phone,verifyopt:1,opt:opt}, 
+			 beforeSend: function() {
+			 	
+			 },		
+			 complete: function() {
+			 	//jQuery('body .bodyoverlay').remove();
+				jQuery('body .preloader').remove();
+			 }, 
+			 crossDomain: true,  
+			 success: function(res) { 
+				if(res['checklogin']['success'])
+				{
+					window.location ='password.html';
+					
+				
+				}else if(res['checklogin']['error']){				
+					jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">'+res['checklogin']['error']+'</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},500);
+					
+				}
+				else
+				{
+					alert('Server error');
+				}
+				return false; 
+			 },  
+			 error: function(response, d, a){
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},500);
+				return false; 
+			 }
+			        
+		   });
+		 }	
+		 return false; 
+	});
+	jQuery('a.recendcode').click( function(){	
+		var error=false;
+		
+		var phone=localStorage.getItem('Driver_loginphone');
+		var url=siteurl+'/api/driver/login';
+		if(phone=='' || error)
+		{
+			return false;
+		}
+		else
+		{
+			 jQuery.ajax({  
+			 type: 'POST',  
+			 url: url,           
+			 dataType: 'json',  
+			 data: {phone:phone,resendotp:1}, 
+			 beforeSend: function() {
+			 	
+			 },		
+			 complete: function() {
+			 	//jQuery('body .bodyoverlay').remove();
+				jQuery('body .preloader').remove();
+			 }, 
+			 crossDomain: true,  
+			 success: function(res) { 
+				if(res['checklogin']['success'])
+				{
+					
+					if(res['checklogin']['goforotp'])
+					{
+						jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Otp sent on '+phone+'</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					}
+				
+				}else if(res['checklogin']['error']){				
+					
+					jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">'+res['checklogin']['error']+'</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},500);
+					
+				}
+				else
+				{
+					alert('Server error');
+				}
+				return false; 
+			 },  
+			 error: function(response, d, a){
+				/*jQuery('body .bodyoverlay').remove();
+				jQuery('body .popupbox').remove();
+				var html='<div class="bodyoverlay"></div><div class="popupbox errorbox"><div class="popupimg"><img src="images/error.png" /></div><h1 class="success">ERROR</h1><h1>Server Error.</h1><button class="okbox">OK</button></div>';
+				jQuery('body').append(html);
+				
+				jQuery('.okbox').click(function(){
+					jQuery('body .bodyoverlay').remove();
+					jQuery('body .popupbox').remove();
+				});*/
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},500);
+				return false; 
+			 }
+			        
+		   });
+		 }	
+		 return false;   
+	});
+	
+	
+	
+});
+
+</script>
+
+
+</body>
+</html>

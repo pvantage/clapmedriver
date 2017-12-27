@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<link href="css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="js/bootstrap-toggle.min.js"></script>
+<style>
+
+</style>
+</head>
+
+<body>
+<div class="wrapper onlinepage">
+
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Clap Me</a>
+  <div class="gpsbox"><img src="images/gps.png"/>GPS</div>
+  </header>
+    <div class="innerpage online-innerpage">
+	<div class="innermidbox">
+	<div class="online-cnt">
+<div class="onlinebtn"><input type="checkbox" id="work_status" name="work_status" data-toggle="toggle" data-style="ios"></div>
+<div class="online-profilepic">
+<div class="online-userpix dphoto"><img src="images/profilepic.png"/></div>
+<h1><a href="javascript:;" class="dname"></a></h1>
+<div class="ratingbox">
+</div>
+
+<div class="road-picbtn">
+<a href="javascript:;" class="pickfromroad"><img src="images/roadpic.png"/></a>
+</div>
+
+<div class="on-map-box">
+<a href="javascript:;" class="updateloaction"><img src="images/onlinemap.png"/></a>
+</div>
+</div>
+	
+
+</div>
+    </div>
+
+
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+
+jQuery(document).ready(function(){
+	
+	var gottobooking=true;
+	
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var phone=localStorage.getItem('Driver_phone');
+	if(typeof phone!='undefined' && phone!='' && phone!=null && phone!='null' && phone!='0'){
+		jQuery('.dphone').html(phone);
+	}
+	var dname='';
+	var fname=localStorage.getItem('Driver_fname');
+	if(typeof fname!='undefined' && fname!='' && fname!=null && fname!='null' && fname!='0'){
+		dname+=fname;
+	}
+	var lname=localStorage.getItem('Driver_lname');
+	if(typeof lname!='undefined' && lname!='' && lname!=null){
+		dname+=' '+lname;
+	}
+	jQuery('.dname').html(dname);
+	var photo=localStorage.getItem('Driver_photo');
+	if(typeof photo!='undefined' && photo!='' && photo!=null){
+		jQuery('.dphoto img').attr('src',photo);
+	}
+	var work_status=localStorage.getItem('Driver_work_status');
+	if(typeof work_status!='undefined' && work_status!='' && work_status!=null){
+		if(work_status=='offline'){
+			jQuery('#work_status').bootstrapToggle('off');
+			jQuery('#work_status').attr('checked',false);
+			//jQuery('.road-picbtn').hide();
+		}
+		else{
+			jQuery('#work_status').bootstrapToggle('on');
+			jQuery('#work_status').attr('checked',true);
+			
+			//jQuery('.road-picbtn').show();
+		}
+	}
+	jQuery('.onlinebtn .toggle-group label.toggle-on').html('Online');
+	jQuery('.onlinebtn .toggle-group label.toggle-off').html('Offline');
+	jQuery('#work_status').change(function(){
+		var work_status='';
+		if(jQuery(this).is(':checked')){
+			localStorage.setItem('Driver_work_status','active');
+			work_status='active';
+			//jQuery('.road-picbtn').show();
+		}
+		else{
+			localStorage.setItem('Driver_work_status','offline');
+			work_status='offline';
+			//jQuery('.road-picbtn').hide();
+		}
+		var url=siteurl+'/api/driver/users';
+	
+		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,  
+		 //contentType: contentType,  
+		 dataType: 'json',  
+		 data: {updatestatus:1,id:uid,work_status:work_status},  
+		 crossDomain: true,  
+		 beforeSend: function() {
+		 },		
+		 complete: function() {
+						
+		 },
+		 success: function(res) {  
+		   
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000); 
+			
+		 } 
+	   });
+	});
+	
+	var url=siteurl+'/api/driver/users';
+	
+	jQuery.ajax({  
+	 type: 'POST',  
+	 url: url,  
+	 //contentType: contentType,  
+	 dataType: 'json',  
+	 data: {ratings:1,id:uid},  
+	 crossDomain: true,  
+	 beforeSend: function() {
+	 },		
+	 complete: function() {
+					
+	 },
+	 success: function(res) {  
+	   var ratings=res['ratings'];
+	   var remaining=5-parseInt(ratings);
+	   var html='<ul>';
+	   for(i=0;i<parseInt(ratings);i++){
+	   	html+='<li><a href="javascript:;"><img src="images/star.png"/></a></li>';
+	   }
+	   for(i=0;i<parseInt(remaining);i++){
+	   	html+='<li><a href="javascript:;"><img src="images/star1.png"/></a></li>';
+	   }
+	   html+='</ul>';
+	   jQuery('.ratingbox').html(html);
+	   if(res['booking_id']){
+	   	gottobooking=false;
+		jQuery('a.pickfromroad').attr('href','trip-in-progress.html?booking_id='+res['booking_id']);
+		}
+	 },  
+	 error: function(response, d, a){
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Server Error.</div>';
+		jQuery('body').append(html);
+		setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+		
+	 } 
+   });
+	jQuery('a.updateloaction').click(function(){
+		var lati=localStorage.getItem('Driver_Lat');
+		var longi=localStorage.getItem('Driver_Long');
+		if(typeof uid!='undefine' && uid!='' && uid!=null){
+			var url=siteurl+'/api/driver/users';
+			jQuery.ajax({  
+			 type: 'POST',  
+			 url: url,  
+			 //contentType: contentType,  
+			 dataType: 'json',  
+			 data: {updatelocation:1,id:uid,lati:lati,longi:longi},  
+			 crossDomain: true,  
+			 beforeSend: function() {
+							
+			 },		
+			 complete: function() {
+						
+			 },
+			 success: function(res) {  
+			   jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Your location is updated.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			 },  
+			 error: function(response, d, a){
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			 } 
+		   });
+		}
+	});
+	
+	jQuery('a.pickfromroad').click(function(){
+		if(gottobooking){
+			var lati=localStorage.getItem('Driver_Lat');
+			var longi=localStorage.getItem('Driver_Long');
+			if(typeof uid!='undefine' && uid!='' && uid!=null){
+				var url=siteurl+'/api/driver/trips';
+				jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,  
+				 //contentType: contentType,  
+				 dataType: 'json',  
+				 data: {roadpick:1,driver_id:uid,lati:lati,longi:longi},  
+				 crossDomain: true,  
+				 beforeSend: function() {
+								
+				 },		
+				 complete: function() {
+							
+				 },
+				 success: function(res) {  
+					if(res['booking_id']){
+					   jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Your trip is started.</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();
+							window.location='trip-in-progress.html?booking_id='+res['booking_id'];
+						},1000);
+					}
+				 },  
+				 error: function(response, d, a){
+					jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">Server Error.</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					
+				 } 
+			   });
+			}
+		}
+	});
+});
+
+</script>
+</body>
+</html>

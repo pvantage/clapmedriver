@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "838559475873",
+    "firebase_url": "https://clapmedriver.firebaseio.com",
+    "project_id": "clapmedriver",
+    "storage_bucket": "clapmedriver.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838559475873:android:ad01c8af058d97ba",
+        "android_client_info": {
+          "package_name": "driver.clapme.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "838559475873-a2bk4j67n6odn3f8eku92hnsg8367q2l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeTY4vE1iC_NhutHoAsVaFx6xuklazuvM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

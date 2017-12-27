@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body>
+<div class="wrapper newspage">
+
+  <div class="container">
+  <header>
+   <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Events</a>
+  </header>
+  <input type="hidden" id="totalpages" value="0" />
+	<input type="hidden" id="nextpage" value="1" />
+	<input type="hidden" id="activesearch" value="1" />
+    <div class="innerpage news-inner">
+	<div class="innermidbox">
+<div class="news-cnt eventlist">
+
+
+
+</div>
+
+
+
+
+
+    </div>
+
+	
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+	function showevents()
+	{
+		
+		var uid=localStorage.getItem('Driver_ID');
+		var url=siteurl+'/api/driver/events';
+		
+		var totalpages=jQuery('#totalpages').val();
+		var pageid=jQuery('#nextpage').val();
+		var activesearch=jQuery('#activesearch').val();
+		if(activesearch=='1'){
+			jQuery.ajax({ 
+			 type: 'POST',  
+			 url: url,  
+			 //contentType: contentType,  
+			 dataType: 'json',  
+			 data: {page:pageid},  
+			 crossDomain: true,  
+			 beforeSend: function() {
+				
+				jQuery('#activesearch').val(0);						
+			 },		
+			 complete: function() {
+						
+			 },
+			 success: function(res) { 
+			 	var html=''; 
+			   if(res['responce'])
+			   {
+					
+					
+					jQuery(res['responce']).each(function(index){
+						html+='<div class="news-box">';
+							if(res['responce'][index]['photo']!=''){
+							html+='<div class="news-imgbox"><a href="event-detail.html?uid='+uid+'&event_id='+res['responce'][index]['id']+'"><img src="'+res['responce'][index]['photo']+'" class="img-fluid img-set-one" style="max-width:50px;" alt="'+res['responce'][index]['name']+'"></a></div>';
+						}
+								html+='<div class="news-righbox"><div class="newstitle"><h1><a href="event-detail.html?uid='+uid+'&event_id='+res['responce'][index]['id']+'">'+res['responce'][index]['name']+'</a></h1> <div class="newsdate">'+res['responce'][index]['startdate']+'</div></div><div class="new-rating"><ul>';
+								var remainrates=5;
+					  		if(res['responce'][index]['ratings']!='' && res['responce'][index]['ratings']!='0'){
+								for(var i=0;i<res['responce'][index]['ratings'];i++){
+                              		html+='<li><a href="javascript:;"><img src="images/star.png"></a></li>';
+								}
+								remainrates=5-parseInt(res['responce'][index]['ratings']);
+							}
+							for(var i=0;i<remainrates;i++){
+								html+='<li><a href="javascript:;"><img src="images/star1.png"></a></li>';
+							}
+								
+								html+='</ul></div></div><div class="para">'+res['responce'][index]['detail']+'</div></div>';
+						
+				   });
+				   jQuery('#activesearch').val(1);
+				   
+				   if(pageid==1){
+						jQuery('#totalpages').val(res['totalpage']);
+						if(res['totalpage']==1){jQuery('#activesearch').val(0);}
+						localStorage.setItem('Event_list',html);
+						jQuery('.eventlist').html('');
+						
+				   }
+				  else if(parseInt(totalpages)>=pageid){
+						if(totalpages==1){jQuery('#activesearch').val(0);}
+				   }
+				   else
+				   {
+				   		jQuery('#activesearch').val(0);
+				   }
+				   pageid=parseInt(pageid)+1;
+				   	jQuery('#nextpage').val(pageid);
+				}
+				if(jQuery.trim(html)==''){
+				html='<p class="noitemfound">There is no event found.</p>';
+				if(pageid==1){jQuery('.eventlist').html(html);localStorage.setItem('Event_list',html);}
+				}
+				else{
+				   jQuery('.eventlist').append(html);
+				 }
+			 },  
+			 error: function(response, d, a){
+			 	
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000); 
+			 } 
+		   });
+		}
+	}
+	
+	jQuery(document).ready(function(){
+		var Event_list=localStorage.getItem('Event_list');
+		if(typeof Event_list!='undefined' && Event_list!=null && Event_list!=''){
+			jQuery('.eventlist').append(Event_list);
+		}
+		showevents();
+		$(window).scroll(function() {
+		   if($(window).scrollTop() + $(window).height() > $(document).height() - 150) {
+				showevents();
+		   }
+		});
+	});
+	var onSuccess = function(position) {
+		
+		localStorage.setItem('Driver_Lat',position.coords.latitude);
+		localStorage.setItem('Driver_Long',position.coords.longitude);
+		
+    };
+ function onError(error) {
+        jQuery('.showhidelocationfilter').hide();
+    }
+   var lati=localStorage.getItem('Driver_Lat');
+ if(typeof lati=='undefined' || lati==null || lati==''){
+ jQuery('.showhidelocationfilter').hide();
+    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+	
+}
+</script>
+
+</body>
+</html>

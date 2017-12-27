@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+
+
+
+</head>
+
+<body>
+<div class="wrapper newspage">
+
+  <div class="container">
+  <header>
+   <a href="events.html"><img src="images/back.png"/>Events Detail</a>
+  </header>
+  <input type="hidden" id="totalpages" value="0" />
+	<input type="hidden" id="nextpage" value="1" />
+	<input type="hidden" id="activesearch" value="1" />
+    <div class="innerpage news-inner">
+	<div class="innermidbox">
+<div class="news-cnt eventlist">
+
+
+
+</div>
+
+
+
+
+
+    </div>
+
+	
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdRw4y6QbeCa2AVoQcI_j7NMQZPYDrabU" type="text/javascript"></script>
+	<script type="text/javascript">
+	
+	function initMap(address,lat,lng) {
+        var locations = [[address, lat, lng, 1]];
+
+		var map = new google.maps.Map(document.getElementById('gmap'), {
+		  zoom: 15,
+		  center: new google.maps.LatLng(lat, lng),
+		  mapTypeId: 'terrain'
+		});
+	
+		var infowindow = new google.maps.InfoWindow();
+	
+		var marker, i;
+	
+		for (i = 0; i < locations.length; i++) {  
+		  marker = new google.maps.Marker({
+			position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+			//icon: image,
+			map: map
+		  });
+	
+		  google.maps.event.addListener(marker, 'click', (function(marker, i) {
+			return function() {
+			  infowindow.setContent(locations[i][0]);
+			  infowindow.open(map, marker);
+			}
+		  })(marker, i));
+		}
+      }
+	function showevents()
+	{
+		var event_id=gup('event_id');
+		var uid=localStorage.getItem('Driver_ID');
+		var url=siteurl+'/api/driver/events';
+		
+			jQuery.ajax({ 
+			 type: 'POST',  
+			 url: url,  
+			 //contentType: contentType,  
+			 dataType: 'json',  
+			 data: {eventdetail:1,event_id:event_id},  
+			 crossDomain: true,  
+			 beforeSend: function() {
+				
+				jQuery('#activesearch').val(0);						
+			 },		
+			 complete: function() {
+						
+			 },
+			 success: function(res) { 
+			 	var html=''; 
+			   if(res['responce'])
+			   {
+					
+					
+					jQuery(res['responce']).each(function(index){
+						html+='<div class="news-box">';
+							if(res['responce'][index]['photo']!=''){
+							html+='<div class="news-imgbox"><a href="event-detail.html?uid='+uid+'&event_id='+res['responce'][index]['id']+'"><img src="'+res['responce'][index]['photo']+'" class="img-fluid img-set-one" style="max-width:50px;" alt="'+res['responce'][index]['name']+'"></a></div>';
+						}
+								html+='<div class="news-righbox"><div class="newstitle"><h1>'+res['responce'][index]['name']+'</h1> <div class="newsdate">'+res['responce'][index]['startdate']+'</div></div><div class="new-rating"><ul>';
+								var remainrates=5;
+					  		if(res['responce'][index]['ratings']!='' && res['responce'][index]['ratings']!='0'){
+								for(var i=0;i<res['responce'][index]['ratings'];i++){
+                              		html+='<li><a href="javascript:;"><img src="images/star.png"></a></li>';
+								}
+								remainrates=5-parseInt(res['responce'][index]['ratings']);
+							}
+							for(var i=0;i<remainrates;i++){
+								html+='<li><a href="javascript:;"><img src="images/star1.png"></a></li>';
+							}
+								
+								html+='</ul></div></div><div class="para">'+res['responce'][index]['detail']+'</div></div>';
+								html+='<div class="map-event-detail" id="gmap" style="width:100%; height:150px;"></div>';
+						
+				   });
+				   jQuery('.eventlist').html(html);
+				   initMap(res['responce'][0]['address'],res['responce'][0]['latitude'],res['responce'][0]['longitude']);
+				   localStorage.setItem('Event_list',html);
+				}
+				
+			 },  
+			 error: function(response, d, a){
+			 	
+				jQuery('body .bodyoverlay').remove();
+				jQuery('body .popupbox').remove();
+				var html='<div class="bodyoverlay"></div><div class="popupbox errorbox"><div class="popupimg"><img src="images/error.png" /></div><h1 class="success">ERROR</h1><h1>Server Error.</h1><button class="okbox">OK</button></div>';
+				jQuery('body').append(html);
+				
+				jQuery('.okbox').click(function(){
+					jQuery('body .bodyoverlay').remove();
+					jQuery('body .popupbox').remove();
+				}); 
+			 } 
+		   });
+	}
+	
+	jQuery(document).ready(function(){
+		var Event_list=localStorage.getItem('Event_list');
+		if(typeof Event_list!='undefined' && Event_list!=null && Event_list!=''){
+			jQuery('.eventlist').append(Event_list);
+		}
+		showevents();
+		
+	});
+	var onSuccess = function(position) {
+		
+		localStorage.setItem('Driver_Lat',position.coords.latitude);
+		localStorage.setItem('Driver_Long',position.coords.longitude);
+		
+    };
+ function onError(error) {
+        jQuery('.showhidelocationfilter').hide();
+    }
+   var lati=localStorage.getItem('Driver_Lat');
+ if(typeof lati=='undefined' || lati==null || lati==''){
+ jQuery('.showhidelocationfilter').hide();
+    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+	
+}
+</script>
+
+</body>
+</html>

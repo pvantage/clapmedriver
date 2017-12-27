@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+   <link href="css/style.css" type="text/css" rel="stylesheet">
+</head>
+
+<body>
+<div class="wrapper">
+  <div class="container">
+    <div class="launchpage">
+      <div class="logobox"><img src="images/1.png"/></div>
+    </div>
+  </div>
+</div>
+<script src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/config.js"></script>
+	<script type="text/javascript">
+		jQuery(document).ready(function(){
+			jQuery('.logobox img').css({'min-height':jQuery(window).height()+'px'});
+		});
+		jQuery( document ).on( "mobileinit", function() {
+			jQuery.mobile.allowCrossDomainPages = true;
+		});
+		var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+		if(window.XDomainRequest){contentType = "text/plain";}
+		jQuery.support.cors = true;
+		
+		var uid=localStorage.getItem('Driver_ID');
+		if(typeof uid!='undefine' && uid!='' && uid!=null){
+			
+			var url=siteurl+'/api/driver/login';
+				 jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,           
+				 dataType: 'json',  
+				 data: {uid:uid,logoutuser:1}, 
+				 beforeSend: function() {
+					
+				 },		
+				 complete: function() {
+					jQuery('body .bodyoverlay').remove();
+					jQuery('body .preloader').remove();
+				 }, 
+				 crossDomain: true,  
+				 success: function(res) { 
+				 	
+					if(res['checkout']['success'])
+					{
+						var let=localStorage.getItem('Driver_Lat');
+						var longi=localStorage.getItem('Driver_Long');
+						localStorage.clear();
+						if(typeof let!='undefined' && let!=null && let!=''){
+							localStorage.setItem('Driver_Lat',let);
+							localStorage.setItem('Driver_Long',longi);
+						}
+						window.location ='phone.html';
+					
+						//localStorage.setItem('userInfo', res['success']['userid']);
+						//window.location ='category.html';
+					}else if(res['checkout']['error']){				
+						jQuery('body .bodyoverlay').remove();
+						jQuery('body .popupbox').remove();
+						var html='<div class="bodyoverlay"></div><div class="popupbox errorbox"><div class="popupimg"><img src="images/error.png" /></div><h1 class="success">ERROR</h1><h1>'+res['checkout']['error']+'</h1><button class="okbox">OK</button></div>';
+						jQuery('body').append(html);
+						
+						jQuery('.okbox').click(function(){
+							jQuery('body .bodyoverlay').remove();
+							jQuery('body .popupbox').remove();
+						});
+						
+					}
+					else
+					{
+						alert('Server error');
+					}
+					return false; 
+				 },  
+				 error: function(response, d, a){
+					jQuery('body .bodyoverlay').remove();
+					jQuery('body .popupbox').remove();
+					var html='<div class="bodyoverlay"></div><div class="popupbox errorbox"><div class="popupimg"><img src="images/error.png" /></div><h1 class="success">ERROR</h1><h1>Server Error.</h1><button class="okbox">OK</button></div>';
+					jQuery('body').append(html);
+					
+					jQuery('.okbox').click(function(){
+						jQuery('body .bodyoverlay').remove();
+						jQuery('body .popupbox').remove();
+					});
+					return false; 
+				 }
+						
+			   });
+			 }
+			 else{
+			 	localStorage.clear();
+				window.location ='phone.html';
+			 }
+	</script>
+  </body>
+</html>

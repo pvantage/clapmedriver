@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<link href="css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="js/bootstrap-toggle.min.js"></script>
+
+
+<script>jQuery(document).ready(function(){jQuery(".finance-table-box tr:odd").addClass("oddtr");});</script>
+</head>
+
+<body>
+<div class="wrapper myfinance">
+
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>My Finance</a>
+  </header>
+  <input type="hidden" id="totalpages" value="0" />
+	<input type="hidden" id="nextpage" value="1" />
+	<input type="hidden" id="activesearch" value="1" />
+    <div class="innerpage finance-innerpage">
+	<div class="fin-date"></div>
+	<div class="innermidbox">
+	<div class="finance-cnt">
+
+<div class="finance-detail">
+<h1 class="pay-title">Balance</h1>
+<div class="fareprize">Rs. 0</div>
+
+<div class="finance-table-box" style="display:none;">	
+
+<table width="100%" border="1" cellspacing="0" cellpadding="0" id="financelist">
+  <tr class="thbox">
+    <th scope="col">Description</th>
+    <th scope="col">Debit</th>
+    <th scope="col">Credit</th>
+  </tr>
+<!--<tr class="subtitlebox">
+    <td colspan="3">17-09-2017 Thursday</td>
+  </tr>-->
+  
+
+</table>
+
+</div>
+
+</div>
+	
+
+</div>
+
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+
+
+
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+	function showevents()
+	{
+		
+		var uid=localStorage.getItem('Driver_ID');
+		var url=siteurl+'/api/driver/users';
+		
+		var totalpages=jQuery('#totalpages').val();
+		var pageid=jQuery('#nextpage').val();
+		var activesearch=jQuery('#activesearch').val();
+		if(activesearch=='1'){
+			jQuery.ajax({ 
+			 type: 'POST',  
+			 url: url,  
+			 //contentType: contentType,  
+			 dataType: 'json',  
+			 data: {page:pageid,uid:uid,finances:1},  
+			 crossDomain: true,  
+			 beforeSend: function() {
+				
+				jQuery('#activesearch').val(0);						
+			 },		
+			 complete: function() {
+						
+			 },
+			 success: function(res) { 
+			 	var html=''; 
+				if(res['today'])
+				{
+					jQuery('.fin-date').html(res['today']);
+				}
+				if(res['balance'])
+				{
+					jQuery('.fareprize').html('Rs. '+res['balance']);
+				}
+			   if(res['responce'])
+			   {
+					jQuery('.finance-table-box').show();
+					
+					jQuery(res['responce']).each(function(index){
+						var html='';
+						var html='<tr><td>'+res['responce'][index]['title']+'</td><td>'+res['responce'][index]['debit']+'</td><td>'+res['responce'][index]['credit']+'</td></tr>';
+						
+						 jQuery('#financelist').append(html);
+				   });
+				   jQuery('#activesearch').val(1);
+				   
+				   if(pageid==1){
+						jQuery('#totalpages').val(res['totalpage']);
+						if(res['totalpage']==1){jQuery('#activesearch').val(0);}
+						
+				   }
+				  else if(parseInt(totalpages)>=pageid){
+						if(totalpages==1){jQuery('#activesearch').val(0);}
+				   }
+				   else
+				   {
+				   		jQuery('#activesearch').val(0);
+				   }
+				   pageid=parseInt(pageid)+1;
+				   	jQuery('#nextpage').val(pageid);
+				}
+				
+			 },  
+			 error: function(response, d, a){
+			 	
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			 } 
+		   });
+		}
+	}
+	
+	jQuery(document).ready(function(){
+		
+		showevents();
+		$(window).scroll(function() {
+		   if($(window).scrollTop() + $(window).height() > $(document).height() - 150) {
+				showevents();
+		   }
+		});
+	});
+	
+</script>
+
+</body>
+</html>

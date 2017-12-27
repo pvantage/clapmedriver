@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper picuplocation">
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Clap Me</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox picupmid">
+	<div class="picup-vehicle">
+	<div class="map-box" id="gmap">
+	</div>
+	
+	
+	
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdRw4y6QbeCa2AVoQcI_j7NMQZPYDrabU" type="text/javascript"></script>
+	<script type="text/javascript">
+	
+	 jQuery(document).ready(function(){
+		var h=jQuery(window).height();
+		jQuery('.picuplocation').css({'height':h+'px','overflow':'hidden'});
+		jQuery('#gmap').css({'height':h+'px','overflow':'hidden'});
+	});
+	var onSuccess = function(position) {
+		
+		localStorage.setItem('Driver_Lat',position.coords.latitude);
+		localStorage.setItem('Driver_Long',position.coords.longitude);
+		initMap();
+		
+    };
+	 function onError(error) {
+
+		}
+	   var lati=localStorage.getItem('Driver_Lat');
+	 if(typeof lati=='undefined' || lati==null || lati==''){
+
+		navigator.geolocation.getCurrentPosition(onSuccess, onError);
+		
+	}
+	var map;
+		var markers = [];
+	function initMap() {
+		var latitude2=parseFloat(localStorage.getItem('Driver_Lat'));
+		var longitude2=parseFloat(localStorage.getItem('Driver_Long'));
+        var map = new google.maps.Map(document.getElementById('gmap'), {
+          zoom: 11,
+          center: {lat: latitude2, lng: longitude2}
+        });
+        var geocoder = new google.maps.Geocoder;
+        var infowindow = new google.maps.InfoWindow;
+		checklocations(map,geocoder, infowindow);
+        //document.getElementById('submit').addEventListener('click', function() {
+          //geocodeLatLng(geocoder, map, infowindow,latitude2,longitude2);
+        //});
+      }
+
+      function geocodeLatLng(geocoder, map, infowindow,latitude2,longitude2) {
+	  	
+		var latlng = {lat: parseFloat(latitude2), lng: parseFloat(longitude2)};
+        geocoder.geocode({'location': latlng}, function(results, status) {
+          if (status === 'OK') {
+            if (results[0]) {
+              map.setZoom(11);
+              var marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+				icon: 'images/pointer.png'
+
+              });
+              infowindow.setContent(results[0].formatted_address);
+              infowindow.open(map, marker);
+			   google.maps.event.addListener(marker, "click", function (e) {
+					var infoWindow = new google.maps.InfoWindow();
+					infoWindow.setContent(results[0].formatted_address);
+					infoWindow.open(map, marker);
+				});
+            } else {
+              window.alert('No results found');
+            }
+          } else {
+            window.alert('Geocoder failed due to: ' + status);
+          }
+        });
+      
+	  }
+initMap();
+function checklocations(map,geocoder, infowindow){
+	  		var url=siteurl+'/api/driver/trips';
+	  		jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,  
+				 //contentType: contentType,  
+				 dataType: 'json',  
+				 data: {heatmaps:1},
+				 crossDomain: true,  
+				 beforeSend: function() {
+					
+				 },		
+				 complete: function() {
+				 	
+				 },
+				 success: function(res) { 
+				 	if(res['trips']){
+						jQuery(res['trips']).each(function(index){
+							if(res['trips'][index]['source_latitude']!='null' && res['trips'][index]['source_latitude']!=null){
+								var img='images/pointer.png';
+								
+								/*var latLng2 = new google.maps.LatLng(res['trips'][index]['source_latitude'], res['trips'][index]['source_longitude']);
+									var marker = new google.maps.Marker({
+										position: latLng2,
+										map: map,
+										icon: img,
+									});
+								marker.setPosition( latLng2 );
+								markers.push(marker);
+								infowindow.setContent(results[0].formatted_address);
+								  infowindow.open(map, marker);
+								   google.maps.event.addListener(marker, "click", function (e) {
+										var infoWindow = new google.maps.InfoWindow();
+										infoWindow.setContent(results[0].formatted_address);
+										infoWindow.open(map, marker);
+									});*/
+									
+								
+								var latlng = {lat: parseFloat(res['trips'][index]['source_latitude']), lng: parseFloat(res['trips'][index]['source_longitude'])};
+								geocoder.geocode({'location': latlng}, function(results, status) {
+								  if (status === 'OK') {
+									if (results[0]) {
+									  var marker = new google.maps.Marker({
+										position: latlng,
+										map: map,
+										icon: 'images/pointer.png'
+						
+									  });
+									  infowindow.setContent(results[0].formatted_address);
+									  infowindow.open(map, marker);
+									   google.maps.event.addListener(marker, "click", function (e) {
+											var infoWindow = new google.maps.InfoWindow();
+											infoWindow.setContent(results[0].formatted_address);
+											infoWindow.open(map, marker);
+										});
+									} else {
+									}
+								  } else {
+								  }
+								});
+
+							}
+						});
+						
+					}
+					else
+					{
+						setTimeout(function(){
+							jQuery('body .showmessage').remove();
+							var html='<div class="showmessage">No Location Found.</div>';
+							jQuery('body').append(html);
+							setTimeout(function(){jQuery('.showmessage').slideUp();},500);
+						},500);
+					}
+				 }
+				 });
+	  }
+	</script>
+</body>
+</html>

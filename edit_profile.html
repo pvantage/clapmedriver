@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<link href="css/jquery-ui.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
+
+
+</head>
+
+<body>
+<div class="wrapper register">
+
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Edit Profile</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox">
+	<div class="log-reg">
+	<img src="images/clap-logo.png"/>
+	
+	</div>
+	
+
+<form class="loginfrm" id="loginuser" action="" method="post">
+<input type="text" class="required" name="fname" id="fname" placeholder="First Name"/>
+<input type="text" class="required" name="lname" id="lname" placeholder="Last Name"/>
+<input type="email" class="email" name="email" id="email" placeholder="Email"/>
+<input type="tel" class="required number" name="phone" id="phone" placeholder="Mobile Number"/>
+<input type="text" name="dob" id="dob" placeholder="Date Of Birth"/>
+<input type="password" name="pwd" id="pwd" placeholder="Password"/>
+<input type="text" name="emergency_contact" id="emergency_contact" readonly="" placeholder="SOS number"/>
+<input type="button" name="uploadphoto" id="uploadphoto" class="submit-btn" value="Upload Photo"/>
+<div class="dphoto"></div>
+<input class="submit-btn" type="submit" value="Update"/>
+
+</form>
+
+    </div>
+
+	
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+<script type="text/javascript" src="js/validate.js"></script>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+function saveprofile(){
+	var error=false;
+	jQuery('#loginuser input').each(function(){
+		if(jQuery(this).hasClass('error')){
+			error=true;
+		}
+	});
+	var uid=localStorage.getItem('Driver_ID');
+	var user_login=jQuery('#email').val();
+	var user_pass=jQuery('#pwd').val();
+	var phone=jQuery('#phone').val();
+	var fname=jQuery('#fname').val();
+	var lname=jQuery('#lname').val();
+	var emergency_contact=jQuery('#emergency_contact').val();
+	var dob=jQuery('#dob').val();
+	var url=siteurl+'/api/driver/users';
+	if(phone=='' || error)
+	{
+		return false;
+	}
+	else
+	{
+		
+		 jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,           
+		 dataType: 'json',  
+		 data: {uname:user_login,pwd:user_pass, phone:phone,fname:fname,lname:lname, dob:dob, id:uid, emergency_contact:emergency_contact,updateuser:1}, 
+		 beforeSend: function() {
+			
+		 },		
+		 complete: function() {
+			
+		 }, 
+		 crossDomain: true,  
+		 success: function(res) { 
+			if(res['error']){				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['error']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			}
+			else if(res['users']['updateuser'])
+			{
+				localStorage.setItem('Driver_email', res['users']['udetail']['email']);
+				localStorage.setItem('Driver_phone', res['users']['udetail']['phone']);
+				localStorage.setItem('Driver_fname', res['users']['udetail']['fname']);
+				localStorage.setItem('Driver_lname', res['users']['udetail']['lname']);
+				localStorage.setItem('Driver_photo', res['users']['udetail']['photo']);
+				localStorage.setItem('Driver_work_status', res['users']['udetail']['work_status']);
+				localStorage.setItem('Driver_dob', res['users']['udetail']['dob']);
+				localStorage.setItem('Driver_emergency_contact', res['users']['udetail']['emergency_contact']);
+				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['users']['updateuser']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			}
+			
+			return false; 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false; 
+		 }
+				
+	   });
+	 }	
+		 
+}
+var platform='';
+var image='';
+function selPic() {
+	//alert('Pick a pic');
+	navigator.camera.getPicture(function(f) {
+		 var newHtml = '<img src="'+f+'">';
+        jQuery('.dphoto').html(newHtml);
+        image=f;
+    }, function(e) {
+    }, { 
+        quality: 1,
+        sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+        destinationType: Camera.DestinationType.FILE_URI
+    });
+    
+}
+function win(r) {
+	saveprofile();
+}
+
+function fail(error) {
+	jQuery('body .showmessage').remove();
+	var html='<div class="showmessage">Uploading error: Code = ' + error.code+', upload error source ' + error.source+', upload error target ' + error.target+'</div>';
+	jQuery('body').append(html);
+	setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+}
+
+function uploadPics() {
+	if(image!=''){	
+        var filetrasfer=image;
+		resolveLocalFileSystemURL(filetrasfer, function(entry) {
+		var filetrasfer2= entry.toURL();
+        var uri = encodeURI(siteurl+"/api/driver/users?uid="+uid+'&uploadpic=1');
+        var options = new FileUploadOptions();
+        options.fileKey="file";
+        options.fileName=filetrasfer2.substr(filetrasfer2.lastIndexOf('/')+1);
+        options.mimeType="image/jpeg";
+		var params = new Object();
+		 params.value1 = "test";
+		 params.value2 = "param";
+		 options.params = params;
+		 options.chunkedMode = false;
+		var headers={'headerParam':'headerValue'};
+		options.headers = headers;
+		
+        var ft = new FileTransfer();
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Start uploading... <span class="progressbar"></span></div>';
+		jQuery('body').append(html);
+		ft.onprogress = function(progressEvent) {
+			if (progressEvent.lengthComputable) {
+				loadingStatus.setPercentage(progressEvent.loaded / progressEvent.total);
+				jQuery('body .showmessage .progressbar').html((progressEvent.loaded / progressEvent.total)+'%');
+			} else {
+				loadingStatus.increment();
+			}
+		};
+		var t=ft.upload(filetrasfer2, uri, win, fail, options);
+		});
+    }
+   
+
+}
+jQuery(document).ready(function(){
+	
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	jQuery('#loginuser').validate({
+  		rules: {
+		    phone: {
+			  required: true,
+			  minlength: 8,
+			  maxlength:10
+			},
+		}
+
+	});
+	jQuery('#dob').datepicker({
+		dateFormat:'yy-mm-dd',
+		maxDate: new Date(),
+		changeMonth: true,
+		changeYear: true,
+		yearRange: "-120:+0"
+	});
+	var email=localStorage.getItem('Driver_email');
+	if(typeof email!='undefined' && email!='' && email!=null && email!='0'){
+		jQuery('#email').val(email);
+	}
+	var phone=localStorage.getItem('Driver_phone');
+	if(typeof phone!='undefined' && phone!='' && phone!=null && phone!='null' && phone!='0'){
+		jQuery('#phone').val(phone);
+	}
+	var fname=localStorage.getItem('Driver_fname');
+	if(typeof fname!='undefined' && fname!='' && fname!=null && fname!='null' && fname!='0'){
+		jQuery('#fname').val(fname);
+	}
+	var lname=localStorage.getItem('Driver_lname');
+	if(typeof lname!='undefined' && lname!='' && lname!=null && lname!='null' && lname!='0'){
+		jQuery('#lname').val(lname);
+	}
+	var dob=localStorage.getItem('Driver_dob');
+	if(typeof dob!='undefined' && dob!='' && dob!=null && dob!='null' && dob!='0'){
+		jQuery('#dob').val(dob);
+	}
+	var emergency_contact=localStorage.getItem('Driver_emergency_contact');
+	if(typeof emergency_contact!='undefined' && emergency_contact!='' && emergency_contact!=null && emergency_contact!='null' && emergency_contact!='0'){
+		jQuery('#emergency_contact').val(emergency_contact);
+	}
+	var photo=localStorage.getItem('Driver_photo');
+	if(typeof photo!='undefined' && photo!='' && photo!=null){
+		jQuery('.dphoto').html('<img src="'+photo+'" />');
+	}
+	jQuery('#loginuser').submit( function(){	
+		var error=false;
+		jQuery('#loginuser input').each(function(){
+			if(jQuery(this).hasClass('error')){
+				error=true;
+			}
+		});
+		var uid=localStorage.getItem('Driver_ID');
+		var user_login=jQuery('#email').val();
+		var user_pass=jQuery('#pwd').val();
+		var phone=jQuery('#phone').val();
+		var fname=jQuery('#fname').val();
+		var lname=jQuery('#lname').val();
+		var emergency_contact=jQuery('#emergency_contact').val();
+		var dob=jQuery('#dob').val();
+		var url=siteurl+'/api/driver/users';
+		if(phone=='' || error)
+		{
+			return false;
+		}
+		else
+		{
+			if(image==''){
+				saveprofile();
+			}
+			else{
+				uploadPics();
+			}
+		 }	
+		 return false;   
+	});
+	
+	
+});
+document.addEventListener("deviceready", init, false);
+function init() {
+	platform=device.platform;
+	document.querySelector("#emergency_contact").addEventListener("touchend", startaddcontacts, false);
+	jQuery("#uploadphoto").on("touchend", selPic);
+}
+function startaddcontacts(){
+	navigator.contacts.pickContact(function(contact){
+        //alert('The following contact has been selected:' + JSON.stringify(contact));
+		var name=contact.displayName;
+		var phone=contact.phoneNumbers[0]['value'];
+		jQuery(contact.phoneNumbers).each(function(index){
+			if(contact.phoneNumbers[index]['type']=='mobile'){
+				var phone=contact.phoneNumbers[index]['value'];
+				jQuery('#emergency_contact').val(phone);
+			}
+		});
+		
+    },function(err){
+        //alert('Error: ' + err);
+    });
+}
+
+</script>
+
+</body>
+</html>

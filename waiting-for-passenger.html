@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper pickup-passenger waitingpassenger">
+
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Pickup Passenger</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox pick-pasngr-inner">
+	<div class="picup-vehicle">
+	<div class="map-box" id="gmap">
+	<img src="images/map1.png"/>
+	</div>
+	<div class="map-locmain">
+<div class="driver-nm"><span></span><div class="phbox"></div></div>
+<div class="driver-loc">
+<div class="pic-left-loc">
+
+</div>
+<div class="pic-right-loc">
+<a href=""><img src="images/arrived-icon.png"/></a>
+</div>
+</div>
+	</div>
+	<div class="map-cnt">
+	<a href="javascript:;" class="submit-btn">Start Trip</a>
+	<a href="cancel-trip.html" class="cancel-btn">Cancel</a>
+	</div>
+	
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+</div>
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdRw4y6QbeCa2AVoQcI_j7NMQZPYDrabU" type="text/javascript"></script>
+<script type="text/javascript">
+var geocoder;
+var map;
+var mapicon=localStorage.getItem('Driver_mapicon');
+function initialize() {
+	//var mapicon=localStorage.getItem('Driver_mapicon');
+  geocoder = new google.maps.Geocoder();
+  var latlng = new google.maps.LatLng(-34.397, 150.644);
+  var mapOptions = {
+    zoom: 16,
+    center: latlng,
+	icon: mapicon
+  }
+  map = new google.maps.Map(document.getElementById('gmap'), mapOptions);
+}
+
+function codeAddress(address) {
+	
+  geocoder.geocode( { 'address': address}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      map.setCenter(results[0].geometry.location);
+      var marker = new google.maps.Marker({
+          map: map,
+          position: results[0].geometry.location,
+		  icon: mapicon
+      });
+    } else {
+      alert('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+}
+initialize();
+jQuery(document).ready(function(){
+	
+		var h=jQuery(window).height();
+		jQuery('#gmap').css({'height':h+'px','overflow-y':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var booking_id=gup('booking_id');
+	jQuery('.cancel-btn').attr('href','cancel-trip.html?booking_id='+booking_id+'&returnpage=waiting-for-passenger.html');
+	
+	var url=siteurl+'/api/driver/trips';
+	 jQuery.ajax({  
+	 type: 'POST',  
+	 url: url,           
+	 dataType: 'json',  
+	 data: {uid:uid,booking_id:booking_id,tripdetail:1}, 
+	 beforeSend: function() {
+		
+	 },		
+	 complete: function() {
+		
+	 }, 
+	 crossDomain: true,  
+	 success: function(res) { 
+		if(res['trip'])
+		{
+			var destination='<h1>'+res['trip']['start_destination']+'</h1>';
+			if(jQuery.trim(res['trip']['end_destination'])!='')
+			{
+				destination+='<h1 class="address-to">'+res['trip']['end_destination']+'</h1>';
+				jQuery('.pic-right-loc a').attr('href','direction-map.html?booking_id='+booking_id+'&from='+res['trip']['start_destination']+'&to='+res['trip']['end_destination']+'&returnpage=waiting-for-passenger.html');
+			}
+			else{
+				jQuery('.pic-right-loc').remove();
+			}
+			jQuery('.pic-left-loc').html(destination);
+			codeAddress(res['trip']['start_destination']);
+			jQuery('.driver-nm span').html(res['trip']['user']);
+			jQuery('.driver-nm .phbox').html('<a href="tel:'+res['trip']['user_phone']+'">'+res['trip']['user_phone']+'</a>');
+		}
+		else if(res['error'])
+		{
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">'+res['error']+'</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();
+				window.location='notification.html';
+			},1000);
+		
+		}
+		else {				
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">There is no trip.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		}
+		
+		return false; 
+	 },  
+	 error: function(response, d, a){
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Server Error.</div>';
+		jQuery('body').append(html);
+		setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+		return false; 
+	 }
+			
+   });
+   
+   jQuery('.submit-btn').click(function(){
+   		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,           
+		 dataType: 'json',  
+		 data: {uid:uid,booking_id:booking_id,tripstarted:1}, 
+		 beforeSend: function() {
+			
+		 },		
+		 complete: function() {
+			
+		 }, 
+		 crossDomain: true,  
+		 success: function(res) { 
+			if(res['success'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['success']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					window.location='trip-in-progress.html?booking_id='+booking_id;
+				},1000);
+			
+			}
+			else if(res['error'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['error']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					window.location='notification.html';
+				},1000);
+			
+			}
+			else {				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Something going wrong.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			}
+			
+			return false; 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false; 
+		 }
+				
+	   });
+   });
+	
+	
+});
+
+</script>
+
+</body>
+</html>

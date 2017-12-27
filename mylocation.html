@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper picuplocation">
+  <div class="container">
+  <header>
+  <a href="#" class="mainmenubtn" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Clap Me</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox picupmid">
+	<div class="picup-vehicle">
+	<div class="map-box" id="gmap">
+	</div>
+	
+	
+	
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?sensor=true&libraries=geometry&key=AIzaSyAdRw4y6QbeCa2AVoQcI_j7NMQZPYDrabU" type="text/javascript"></script>
+	<script type="text/javascript">
+	jQuery(document).ready(function(){
+		var h=jQuery(window).height();
+		jQuery('.picuplocation').css({'height':h+'px','overflow':'hidden'});
+		jQuery('#gmap').css({'height':h+'px','overflow':'hidden'});
+	});
+	var onSuccess = function(position) {
+		
+		localStorage.setItem('Driver_Lat',position.coords.latitude);
+		localStorage.setItem('Driver_Long',position.coords.longitude);
+		initMap();
+		
+    };
+	 function onError(error) {
+
+		}
+	   var lati=localStorage.getItem('Driver_Lat');
+	 if(typeof lati=='undefined' || lati==null || lati==''){
+
+		navigator.geolocation.getCurrentPosition(onSuccess, onError);
+		
+	}
+	var booking_id=gup('booking_id');
+	if(booking_id!=null && jQuery.trim(booking_id)!='' && typeof booking_id!='undefined'){
+		jQuery('.mainmenubtn').removeAttr('data-toggle');
+		jQuery('.mainmenubtn').removeAttr('data-target');
+		jQuery('.mainmenubtn').attr('href','trip-in-progress.html?booking_id='+booking_id);
+		jQuery('.mainmenubtn img').attr('src','images/back.png');
+	}
+	var map, marker, old_lati, old_longi;
+	var speed = 50; // km/h
+	var startPos = [];
+var delay = 100;
+var mapicon=localStorage.getItem('Driver_mapicon');
+function mylocation(map,old_lati,old_longi,marker,mapicon,geocoder,infowindow){
+	
+	var new_lati=localStorage.getItem('Driver_Lat');
+	var new_longi=localStorage.getItem('Driver_Long');
+	updateMarker(geocoder,infowindow,marker, new_lati, new_longi,mapicon);
+	if(old_lati!=new_lati && old_longi!=new_longi){
+		old_lati=new_lati;
+		old_longi=new_longi;
+		google.maps.event.addListenerOnce(map, 'idle', function()
+		{
+			animateMarker(marker, [
+				[new_lati, new_longi]
+			], speed);
+		});
+	}
+	/*else{
+		google.maps.event.addListenerOnce(map, 'idle', function()
+		{
+			animateMarker(marker, [
+				[new_lati, new_longi]
+			], speed);
+		});
+	}*/
+   setTimeout(function(){mylocation(map,old_lati,old_longi,marker,mapicon,geocoder,infowindow)},3000);
+}
+function updateMarker(geocoder,infowindow,marker, latitude, longitude,mapicon) {
+  var latlng3 = {lat: parseFloat(latitude), lng: parseFloat(longitude)};
+        geocoder.geocode({'location': latlng3}, function(results, status) {
+          if (status === 'OK') {
+            if (results[0]) {
+              infowindow.setContent(results[0].formatted_address);
+            } 
+          }
+        });
+ 
+  
+}
+function animateMarker(marker, coords, km_h)
+{
+    var target = 0;
+    var km_h = km_h || 50;
+    coords.push([startPos[0], startPos[1]]);
+    
+    function goToPoint()
+    {
+		
+        var lat = marker.position.lat();
+        var lng = marker.position.lng();
+        var step = (km_h * 1000 * delay) / 3600000; // in meters
+        
+        var dest = new google.maps.LatLng(
+        coords[target][0], coords[target][1]);
+        
+        var distance =
+        google.maps.geometry.spherical.computeDistanceBetween(
+        dest, marker.position); // in meters
+        
+        var numStep = distance / step;
+        var i = 0;
+        var deltaLat = (coords[target][0] - lat) / numStep;
+        var deltaLng = (coords[target][1] - lng) / numStep;
+        
+        function moveMarker()
+        {
+            lat += deltaLat;
+            lng += deltaLng;
+            i += step;
+            
+            if (i < distance)
+            {
+                marker.setPosition(new google.maps.LatLng(lat, lng));
+                setTimeout(moveMarker, delay);
+            }
+            else
+            {   marker.setPosition(dest);
+                target++;
+                if (target == coords.length){ target = 0; }
+                
+                //setTimeout(goToPoint, delay);
+            }
+        }
+        moveMarker();
+    }
+    goToPoint();
+}
+	function initMap() {
+		var latitude2=parseFloat(localStorage.getItem('Driver_Lat'));
+		var longitude2=parseFloat(localStorage.getItem('Driver_Long'));
+		old_lati=latitude2;
+		old_longi=longitude2;
+		startPos = [old_lati, old_longi];
+        var map = new google.maps.Map(document.getElementById('gmap'), {
+          zoom: 10,
+          center: {lat: latitude2, lng: longitude2},
+		  mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+        var geocoder = new google.maps.Geocoder;
+        var infowindow = new google.maps.InfoWindow;
+		
+        //document.getElementById('submit').addEventListener('click', function() {
+          geocodeLatLng(geocoder, map, infowindow,latitude2,longitude2,old_lati,old_longi);
+        //});
+      }
+
+      function geocodeLatLng(geocoder, map, infowindow,latitude2,longitude2,old_lati,old_longi) {
+	  	
+		var latlng = {lat: parseFloat(latitude2), lng: parseFloat(longitude2)};
+        geocoder.geocode({'location': latlng}, function(results, status) {
+          if (status === 'OK') {
+            if (results[0]) {
+              var marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+				icon: {
+						url: mapicon
+					}
+
+              });
+			  setTimeout(function(){ map.setZoom(17);},2000);
+			 
+              infowindow.setContent(results[0].formatted_address);
+              //infowindow.open(map, marker);
+			   google.maps.event.addListener(marker, "click", function (e) {
+					var infoWindow = new google.maps.InfoWindow();
+					infoWindow.setContent(results[0].formatted_address);
+					infoWindow.open(map, marker);
+				});
+				
+				google.maps.event.addListener(marker,'mouseover',function(){
+				  $('img[src="'+this.mapicon+'"]').stop().animate({opacity:1});
+				});
+				google.maps.event.addListener(marker,'mouseout',function(){
+				  $('img[src="'+this.mapicon+'"]').stop().animate({opacity:.5});
+				});
+				mylocation(map,old_lati,old_longi,marker,mapicon,geocoder,infowindow);
+            } else {
+              window.alert('No results found');
+            }
+          } else {
+            window.alert('Geocoder failed due to: ' + status);
+          }
+        });
+      
+	  }
+initMap();
+
+	
+
+	</script>
+</body>
+</html>

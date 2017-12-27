@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/tabcontent.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+<div class="wrapper tripinprogress">
+
+  <div class="container">
+  <header>
+   <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Trip in Progress</a>
+  </header>
+    <div class="innerpage tripinprogress-inner">
+	<div class="innermidbox">
+	<div class="tripinprogress-cnt">
+	<h1><span class="total_price"></span><a href="#" class="sosnumber" style="display:none;"><img src="images/sos.png"/></a></h1>
+<div class="waitingbox">
+<div class="wting-leftbox">
+<a href="#"><img src="images/wl-icon.png"/></a>
+</div>
+<div class="wting-midmainbox">
+<div class="wting-midbox">
+<a class="strbox" id="startwtime" href="javascript:;"></a> <span class="waitingtimetext">Start Waiting</span>
+</div></div>
+
+<div class="wting-rightbox">
+<a href="javascript:;"><img src="images/wr-icon.png"/></a>
+</div>
+<div>
+    </div>
+    </div>
+<div class="kmmainbox-cont">
+<span class="checklatlong"></span>
+<div class="kmmainbox">
+<div class="km-box">
+<div class="km-box1">
+<span>KM</span>
+<h1 class="totaldistance"></h1>
+</div>
+<div class="km-box1">
+<span>Hire Cost</span>
+<h1 class="distanceprice"></h1>
+</div>
+</div>
+
+<div class="km-box">
+<div class="km-box1">
+<span>Waiting Time</span>
+<h1 class="waitingtime"></h1>
+</div>
+<div class="km-box1">
+<span>Waiting Cost</span>
+<h1 class="waitingcost"></h1>
+<input type="hidden" id="total_p" value="0">
+<input type="hidden" id="waiting_time" value="0">
+<input type="hidden" id="waiting_price" value="0">
+<input type="hidden" id="waiting_id" value="0">
+<input type="hidden" id="vtype_price" value="0">
+</div>
+</div>
+</div>
+
+<button class="submit-btn endttime" data-toggle="modal" data-target="#myModal2">End Trip</button>
+</div>
+	
+	</div>
+  </div>
+</div>
+</div>
+</div>
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+<div id="myModal2" class="modal fade tripconfirmation-box" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+       
+        <h4 class="modal-title">End trip confirmation</h4>
+      </div>
+      <div class="modal-body">
+ <h3>Are you sure to end trip?</h3>
+ 
+ <div class="yesnobtn"><button class="submit-btn nobtn cloasepopup"><img src="images/close.png"/>NO</button>
+<button class="submit-btn ysbtn endthetrip"><img src="images/yes.png"/>YES</button>
+ </div>
+      </div>
+     
+    </div>
+
+  </div>
+</div>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+	jQuery('.cloasepopup').click(function(){
+		jQuery('#myModal2').modal('hide');
+	});
+	var waiting_price=0;
+	var total_price=0;
+	var waiting_price_perminut=0;
+	var price_pkm=0;
+	var timecount=0;
+	var paybycard=false;
+	var pay_token='';
+	var billing_street='';
+	var billing_city='';
+	var billing_state='';
+	var billing_country='';
+	var billing_zipcode='';
+	var vtype_price=0;
+	var autostart_waittime=1000;
+	var user_id='';
+	var old_lati=parseFloat(localStorage.getItem('Driver_Lat')).toFixed(6);
+	var old_longi=parseFloat(localStorage.getItem('Driver_Long')).toFixed(6);
+	var new_lati=parseFloat(localStorage.getItem('Driver_Lat')).toFixed(6);
+	var new_longi=parseFloat(localStorage.getItem('Driver_Long')).toFixed(6);
+	var strtstpinterval='';
+	var gotopage='trip-detail.html?booking_id='+booking_id;
+		var h=jQuery(window).height();
+		jQuery('.phonepage').css({'height':h+'px','overflow':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var emergency_contact=localStorage.getItem('Driver_emergency_contact');
+	if(typeof emergency_contact!='undefined' && emergency_contact!='' && emergency_contact!=null && emergency_contact!='null' && emergency_contact!='0'){
+		jQuery('.sosnumber').attr('href','tel:'+emergency_contact);
+		jQuery('.sosnumber').show();
+	}
+	var booking_id=gup('booking_id');
+	jQuery('.wting-rightbox a').attr('href','mylocation.html?booking_id='+booking_id);
+	jQuery('.wting-leftbox a').attr('href','trip-detail.html?booking_id='+booking_id+'&trip_id='+booking_id);
+	
+	var url=siteurl+'/api/driver/trips';
+	 jQuery.ajax({  
+	 type: 'POST',  
+	 url: url,           
+	 dataType: 'json',  
+	 data: {uid:uid,booking_id:booking_id,tripdetail:1,extrainfo:1}, 
+	 beforeSend: function() {
+		
+	 },		
+	 complete: function() {
+		
+	 }, 
+	 crossDomain: true,  
+	 success: function(res) { 
+		if(res['trip'])
+		{
+			if(typeof res['extrainfo']['autostart_waittime']!='undefined' && jQuery.trim(res['extrainfo']['autostart_waittime'])!=''){
+				autostart_waittime=res['extrainfo']['autostart_waittime'];
+				if(parseFloat(autostart_waittime)<=0){
+					autostart_waittime=1000;
+				}
+				else
+				{
+					autostart_waittime=parseFloat(autostart_waittime)*1000*60;
+				}
+			}
+			var tdistance=parseFloat(res['trip']['totaldistance']);
+			if(jQuery.trim(tdistance)!=''){
+				jQuery('.totaldistance').html(tdistance.toFixed(2));
+			}
+			else{
+				jQuery('.totaldistance').html(res['trip']['totaldistance']);
+			}
+			price_pkm=res['trip']['price_pkm'];
+			vtype_price=res['trip']['vtype_price'];
+			jQuery('#vtype_price').val(vtype_price);
+			if(parseFloat(vtype_price)>0){
+			var distanceprice=parseFloat(res['trip']['total_price'])+parseFloat(vtype_price);
+			}
+			else
+			{
+				var distanceprice=parseFloat(res['trip']['total_price']);
+			}
+			jQuery('.distanceprice').html(distanceprice.toFixed(2));
+			total_price=res['trip']['total_price'];
+			jQuery('#total_p').val(total_price);
+			jQuery('#waiting_time').val(res['trip']['waiting_time']);
+			jQuery('#waiting_price').val(res['trip']['waittime_price']);
+			
+			if(parseFloat(vtype_price)>0){
+				var totalp=parseFloat(total_price)+parseFloat(res['trip']['waittime_price'])+parseFloat(vtype_price);
+			}
+			else
+			{
+				var totalp=parseFloat(total_price)+parseFloat(res['trip']['waittime_price']);
+			}
+			
+	  		jQuery('.total_price').html(totalp.toFixed(2));
+			
+			waiting_price=res['trip']['waittime_price'];
+			waiting_price_perminut=res['trip']['waittime_price_pmint'];
+			jQuery('.waitingtime').html(res['trip']['waiting_time']);
+			jQuery('.waitingcost').html(res['trip']['waittime_price']);
+			var wattime=res['trip']['waiting_time'];
+			wattime=wattime.split(':');
+			timecount=(wattime[0]*60*60*1000)+(wattime[1]*60*1000)+(wattime[2]*1000);
+			if(res['trip']['trip_status']=='5'){window.location='trip-detail.html?booking_id='+booking_id;}
+			else if(res['trip']['trip_status']=='2'){window.location='notification.html';}
+			var mini_price=res['trip']['mini_price'];
+			if(jQuery.trim(res['trip']['end_destination'])=='' || jQuery.trim(res['trip']['desti_latitude'])=='' || jQuery.trim(res['trip']['totaldistance'])=='' || jQuery.trim(parseInt(res['trip']['totaldistance']))<=0)
+			{
+				UpdateDestination(total_price,price_pkm,mini_price);
+			}
+			else{
+				UpdateWithDestination();
+			}
+			if(res['trip']['payment_by']=='cash'){
+				gotopage='payment-cash.html?booking_id='+booking_id;
+			}
+			else if(res['trip']['payment_by']=='card' && res['extrainfo']['pay_token']!='' && res['extrainfo']['pay_token']!='NULL' && res['extrainfo']['pay_token']!=null){
+				paybycard=true;
+				pay_token=res['extrainfo']['pay_token'];
+				billing_street=res['extrainfo']['billing_street'];
+				billing_city=res['extrainfo']['billing_city'];
+				billing_state=res['extrainfo']['billing_state'];
+				billing_country=res['extrainfo']['billing_country'];
+				billing_zipcode=res['extrainfo']['billing_zipcode'];
+				user_id=res['trip']['user_id'];
+			}
+			
+		   
+		   strtstpinterval=setInterval(startstopwaittime,autostart_waittime);
+			
+		}else {				
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">There is no trip.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		}
+		
+		return false; 
+	 },  
+	 error: function(response, d, a){
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Server Error.</div>';
+		jQuery('body').append(html);
+		setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+		return false; 
+	 }
+			
+   });
+   
+   
+	var counter='';
+	jQuery('.strbox').click(function(){
+		jQuery(this).addClass('disableauto');
+		clearInterval(strtstpinterval);
+		if(!jQuery(this).hasClass('disabledtime'))
+		{
+			if(jQuery('.tripinprogress').hasClass('endtripprogress')){
+				jQuery('.waitingtimetext').html('Start Waiting');
+				jQuery('.tripinprogress').removeClass('endtripprogress');
+				clearInterval(counter); 
+				var waiting_id=jQuery('#waiting_id').val();
+				var waiting_time2=jQuery('#waiting_time').val();
+				var waittime_price2=jQuery('#waiting_price').val();
+				
+				jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,           
+				 dataType: 'json',  
+				 data: {uid:uid,booking_id:booking_id,endwaitingtime:1,waiting_id:waiting_id,waiting_time:waiting_time2,waittime_price:waittime_price2}, 
+				 beforeSend: function() {
+					
+				 },		
+				 complete: function() {
+					
+				 }, 
+				 crossDomain: true,  
+				 success: function(res) { 
+					if(res['success'])
+					{
+						jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">'+res['success']+'</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();
+						},1000);
+					
+					}else {				
+						jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Something going wrong.</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+						
+					}
+					return false; 
+				 },  
+				 error: function(response, d, a){
+					jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">Server Error.</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					return false; 
+				 }
+						
+			   });
+			}
+			else
+			{
+				jQuery('.waitingtimetext').html('End Waiting');
+				jQuery('.tripinprogress').addClass('endtripprogress');
+				counter=setInterval(timer, 1000);
+				jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,           
+				 dataType: 'json',  
+				 data: {uid:uid,booking_id:booking_id,addwaitingtime:1}, 
+				 beforeSend: function() {
+					
+				 },		
+				 complete: function() {
+					
+				 }, 
+				 crossDomain: true,  
+				 success: function(res) { 
+					if(res['waiting_id'])
+					{
+						jQuery('#waiting_id').val(res['waiting_id']);
+					
+					}else {				
+						jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Something going wrong.</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+						
+					}
+					
+					return false; 
+				 },  
+				 error: function(response, d, a){
+					/*jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">Server Error.</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					return false;*/ 
+				 }
+						
+			   });
+			}
+		}
+	});
+	jQuery('.endttime').click(function(){
+		jQuery('.strbox').trigger('click');
+	});
+	var countckcnt=1;
+	var checktimer=true;
+	function timer(){
+		if(jQuery('.tripinprogress').hasClass('endtripprogress')){
+	  		timecount=timecount+1000;
+		  var hours = Math.floor((timecount % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		  var minutes = Math.floor((timecount % (1000 * 60 * 60)) / (1000 * 60));
+		  var seconds = Math.floor((timecount % (1000 * 60)) / 1000);
+		  if(parseInt(hours)<10){hours='0'+hours;}
+		  if(parseInt(minutes)<10){minutes='0'+minutes;}
+		  if(parseInt(seconds)<10){seconds='0'+seconds;}
+		  var waittime=hours+':'+minutes+':'+seconds;
+		  jQuery('.waitingtime').html(waittime);
+		  waiting_price=(waiting_price_perminut*timecount/(1000*60));
+		  waiting_price=waiting_price.toFixed(2);
+		  jQuery('#waiting_price').val(waiting_price);
+		  jQuery('#waiting_time').val(waittime);
+		  jQuery('.waitingcost').html(waiting_price);
+		  var total_p=jQuery('#total_p').val();
+		  var vtype_price=jQuery('#vtype_price').val();
+		  var totalp=parseFloat(total_p)+parseFloat(waiting_price);
+		  if(parseFloat(vtype_price)>0){
+				var totalp=parseFloat(total_p)+parseFloat(waiting_price)+parseFloat(vtype_price);
+			}
+			
+		  jQuery('.total_price').html(totalp.toFixed(2));
+		}
+	  if(!jQuery('.tripinprogress').hasClass('endtripprogress')){
+			clearInterval(counter); 
+			checktimer=true;
+		}
+		else{
+			checktimer=false;
+			
+		}
+	 }
+	 
+	 jQuery('.endthetrip').click(function(){
+	 	var waiting_id=jQuery('#waiting_id').val();
+		var waiting_time2=jQuery('#waiting_time').val();
+		var waittime_price2=jQuery('#waiting_price').val();
+   		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,           
+		 dataType: 'json',  
+		 data: {uid:uid,booking_id:booking_id,endtrip:1,waiting_id:waiting_id,waiting_time:waiting_time2,waittime_price:waittime_price2}, 
+		 beforeSend: function() {
+			jQuery('#myModal2').modal('hide');
+		 },		
+		 complete: function() {
+			
+		 }, 
+		 crossDomain: true,  
+		 success: function(res) { 
+			if(res['success'])
+			{
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">'+res['success']+'</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();
+					if(paybycard){
+						var wp=jQuery('#waiting_price').val();
+						var vtype_price=jQuery('#vtype_price').val();
+						var totalp=parseFloat(total_price)+parseFloat(wp);
+						if(parseFloat(vtype_price)>0){
+							var totalp=parseFloat(total_price)+parseFloat(wp)+parseFloat(vtype_price);
+						}
+						
+						var url2=siteurl+'/api/driver/payment';
+						 jQuery.ajax({  
+						 type: 'POST',  
+						 url: url2,           
+						 dataType: 'json',  
+						 data: {driver_id:uid,user_id:user_id,booking_id:booking_id,pay_ction:'charge',pay_token:pay_token,billing_street:billing_street,billing_city:billing_city,billing_state:billing_state,billing_country:billing_country,billing_zipcode:billing_zipcode,amount:totalp}, 
+						 beforeSend: function() {
+							
+						 },		
+						 complete: function() {
+							
+						 }, 
+						 crossDomain: true,  
+						 success: function(res) { 
+							if(res['success'])
+							{
+								window.location=res['success'];
+								
+							}else {				
+								jQuery('body .showmessage').remove();
+								var html='<div class="showmessage">Payment is not done, please ask for cash.</div>';
+								jQuery('body').append(html);
+								setTimeout(function(){jQuery('.showmessage').slideUp();
+								window.location='payment-cash.html?booking_id='+booking_id;
+								},1000);
+								
+							}
+							
+							return false; 
+						 },  
+						 error: function(response, d, a){
+							jQuery('body .showmessage').remove();
+							var html='<div class="showmessage">Server Error.</div>';
+							jQuery('body').append(html);
+							setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+							return false; 
+						 }
+								
+					   });
+					}
+					else{
+						window.location=gotopage;
+					}
+				},1000);
+			
+			}else {				
+				jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Something going wrong.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				
+			}
+			
+			return false; 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			return false; 
+		 }
+				
+	   });
+   });
+   var checkstartstotime='';
+   function checkstoptime(){
+   	if(!jQuery('a.strbox').hasClass('disableauto'))
+	{
+   		var new_lati=parseFloat(localStorage.getItem('Driver_Lat')).toFixed(6);
+		var new_longi=parseFloat(localStorage.getItem('Driver_Long')).toFixed(6);
+   		if(new_lati!=old_lati && new_longi!=old_longi){
+			jQuery('a.strbox').removeClass('disabledtime2');
+			jQuery('.waitingtimetext').html('Start Waiting');
+			jQuery('.tripinprogress').removeClass('endtripprogress');
+			clearInterval(counter); 
+			clearInterval(strtstpinterval);
+			var waiting_id=jQuery('#waiting_id').val();
+			var waiting_time2=jQuery('#waiting_time').val();
+			var waittime_price2=jQuery('#waiting_price').val();
+			countckcnt=1;
+			jQuery.ajax({  
+			 type: 'POST',  
+			 url: url,           
+			 dataType: 'json',  
+			 data: {uid:uid,booking_id:booking_id,endwaitingtime:1,waiting_id:waiting_id,waiting_time:waiting_time2,waittime_price:waittime_price2}, 
+			 beforeSend: function() {
+				
+			 },		
+			 complete: function() {
+				countckcnt=1;
+				setTimeout(startstopwaittime,autostart_waittime);
+			 }, 
+			 crossDomain: true,  
+			 success: function(res) { 
+			 	startstopwaittime();
+				if(res['success'])
+				{
+					/*jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">'+res['success']+'2</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();
+					},1000);*/
+				
+				}else {				
+					jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">Something going wrong.</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					
+				}
+				
+				return false; 
+			 },  
+			 error: function(response, d, a){
+				/*jQuery('body .showmessage').remove();
+				var html='<div class="showmessage">Server Error.</div>';
+				jQuery('body').append(html);
+				setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+				return false;*/ 
+			 }
+					
+		   });
+		}
+   		else{
+			setTimeout(checkstoptime, 5000);
+		}
+	}
+   }
+   function startstopwaittime(){
+    var new_lati=parseFloat(localStorage.getItem('Driver_Lat')).toFixed(6);
+	var new_longi=parseFloat(localStorage.getItem('Driver_Long')).toFixed(6);
+	if(!jQuery('a.strbox').hasClass('disableauto'))
+	{
+			if(new_lati!=old_lati && new_longi!=old_longi){
+				jQuery('a.strbox').removeClass('disabledtime2');
+				jQuery('.waitingtimetext').html('Start Waiting');
+				jQuery('.tripinprogress').removeClass('endtripprogress');
+				clearInterval(counter); 
+				clearInterval(strtstpinterval);
+				//countckcnt=1;
+				var waiting_id=jQuery('#waiting_id').val();
+				var waiting_time2=jQuery('#waiting_time').val();
+				var waittime_price2=jQuery('#waiting_price').val();
+				
+				jQuery.ajax({  
+				 type: 'POST',  
+				 url: url,           
+				 dataType: 'json',  
+				 data: {uid:uid,booking_id:booking_id,endwaitingtime:1,waiting_id:waiting_id,waiting_time:waiting_time2,waittime_price:waittime_price2}, 
+				 beforeSend: function() {
+					
+				 },		
+				 complete: function() {
+					countckcnt=1;
+					//alert(autostart_waittime);
+					checktimer=true;
+					setTimeout(startstopwaittime,autostart_waittime);
+				 }, 
+				 crossDomain: true,  
+				 success: function(res) { 
+					if(res['success'])
+					{
+						/*jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">'+res['success']+'</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();
+						},1000);*/
+					
+					}else {				
+						jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Something going wrong.</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+						
+					}
+					/*var new_lati=localStorage.getItem('Driver_Lat');
+					var new_longi=localStorage.getItem('Driver_Long');*/
+					
+					return false; 
+				 },  
+				 error: function(response, d, a){
+					/*jQuery('body .showmessage').remove();
+					var html='<div class="showmessage">Update time Server Error.2</div>';
+					jQuery('body').append(html);
+					setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+					return false; */
+				 }
+						
+			   });
+			}
+			else
+			{
+				if(checktimer){
+					jQuery('a.strbox').addClass('disabledtime2');
+					jQuery('.waitingtimetext').html('End Waiting');
+					jQuery('.tripinprogress').addClass('endtripprogress');
+					//clearInterval(strtstpinterval);
+					if(countckcnt==1){
+						counter=setInterval(timer, 1000);
+					}
+					else{clearInterval(counter);}
+					countckcnt=parseInt(countckcnt)+1;
+					checkstoptime();
+					
+					checktimer=false;
+					jQuery.ajax({  
+					 type: 'POST',  
+					 url: url,           
+					 dataType: 'json',  
+					 data: {uid:uid,booking_id:booking_id,addwaitingtime:1}, 
+					 beforeSend: function() {
+						
+					 },		
+					 complete: function() {
+						checktimer=true;
+					 }, 
+					 crossDomain: true,  
+					 success: function(res) { 
+						if(res['waiting_id'])
+						{
+							jQuery('#waiting_id').val(res['waiting_id']);
+						
+						}else {				
+							jQuery('body .showmessage').remove();
+							var html='<div class="showmessage">Something going wrong.</div>';
+							jQuery('body').append(html);
+							setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+							
+						}
+						return false; 
+					 },  
+					 error: function(response, d, a){
+						/*jQuery('body .showmessage').remove();
+						var html='<div class="showmessage">Update time Server Error.3</div>';
+						jQuery('body').append(html);
+						setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+						return false;*/ 
+					 }
+							
+				   });
+				 }
+			}
+			//console.log(old_lati+'='+new_lati+' and '+old_longi+'='+new_longi);
+			//jQuery('.checklatlong').html(old_lati+'='+new_lati+'<br>'+old_longi+'='+new_longi);
+			old_lati=new_lati;
+			old_longi=new_longi;
+			
+		/*if(!jQuery('a.strbox').hasClass('disabledtime2'))
+		{
+			strtstpinterval=setInterval(startstopwaittime,autostart_waittime);
+		}*/
+		/*;
+		setTimeout(function(){
+		new_lati=localStorage.getItem('Driver_Lat');
+		new_longi=localStorage.getItem('Driver_Long');
+		if(!jQuery('a.strbox').hasClass('disabledtime2'))
+		{
+			startstopwaittime(new_lati,new_longi);
+		}
+	   },autostart_waittime);*/
+	}
+	else{
+		old_lati=new_lati;
+		old_longi=new_longi;
+	}
+}
+});
+
+
+function UpdateDestination(total_price,price_pkm,mini_price) {
+	var latitude=localStorage.getItem('Driver_Lat');
+	var longitude=localStorage.getItem('Driver_Long');
+	var uid=localStorage.getItem('Driver_ID');
+	booking_id=gup('booking_id');
+	if(typeof uid!='undefine' && uid!='' && uid!=null){
+		var url=siteurl+'/api/driver/trips';
+		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,  
+		 //contentType: contentType,  
+		 dataType: 'json',  
+		 data: {updatelocation:1,booking_id:booking_id,lati:latitude,longi:longitude},  
+		 crossDomain: true,  
+		 beforeSend: function() {
+						
+		 },		
+		 complete: function() {
+			
+		 },
+		 success: function(res) {  
+		  var wp=jQuery('#waiting_price').val();
+		  var vtype_price=jQuery('#vtype_price').val();
+		  if(parseFloat(res['distance'])>1){
+				var remainingdistance=res['distance']-1;
+				total_price=parseFloat(mini_price)+parseFloat(remainingdistance*price_pkm);
+			}
+			else
+			{
+				total_price=mini_price;
+			}
+			if(parseFloat(vtype_price)>0){
+				total_price=total_price+parseFloat(vtype_price);
+			}
+		  jQuery('.distanceprice').html(parseFloat(total_price).toFixed(2));
+		  jQuery('.totaldistance').html(res['distance'].toFixed(2));
+		  var totalp=parseFloat(total_price)+parseFloat(wp);
+		  if(parseFloat(vtype_price)>0){
+				totalp=totalp+parseFloat(vtype_price);
+			}
+		  jQuery('.total_price').html(totalp.toFixed(2));
+		  jQuery('#total_p').val(total_price);
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		 } 
+	   });
+		setTimeout(function(){UpdateDestination(total_price,price_pkm,mini_price);},5000);
+	}
+    
+}
+function UpdateWithDestination() {
+	var latitude=localStorage.getItem('Driver_Lat');
+	var longitude=localStorage.getItem('Driver_Long');
+	var uid=localStorage.getItem('Driver_ID');
+	booking_id=gup('booking_id');
+	if(typeof uid!='undefine' && uid!='' && uid!=null){
+		var url=siteurl+'/api/driver/trips';
+		jQuery.ajax({  
+		 type: 'POST',  
+		 url: url,  
+		 //contentType: contentType,  
+		 dataType: 'json',  
+		 data: {updatelocation:1,booking_id:booking_id,lati:latitude,longi:longitude},  
+		 crossDomain: true,  
+		 beforeSend: function() {
+						
+		 },		
+		 complete: function() {
+			
+		 },
+		 success: function(res) {
+		 
+		 },  
+		 error: function(response, d, a){
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">Server Error.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		 } 
+	   });
+		setTimeout(function(){UpdateDestination(total_price,price_pkm,mini_price);},5000);
+	}
+    
+}
+
+</script>
+
+</body>
+</html>

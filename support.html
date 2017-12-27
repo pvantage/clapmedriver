@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<link type="text/css" rel="stylesheet" href="css/jquery.selectBoxIt.css" />
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
+<script src="js/jquery.selectBoxIt.min.js"></script>
+
+
+
+</head>
+
+<body>
+<div class="wrapper driversupport">
+
+  <div class="container">
+  <header>
+  <a href="#" data-toggle="modal" data-target="#myprofilemenus"><img src="images/menu.png"/>Driver Support</a>
+  </header>
+    <div class="innerpage">
+	<div class="innermidbox">
+<div class="driversupport-cnt">
+<div class="dsbox">
+<h1>Support</h1>
+<select>
+<option value="dd">Cancel Trip</option>
+<option value="nano5">nano5</option>
+<option value="nano6">nano6</option>
+<option value="nano7">nano7</option>
+<option value="nano7">nano7</option>
+</select>
+</div>
+
+
+<div class="dsbox">
+<h1>reason</h1>
+<select>
+<option value="dd">Passenger Wrong Location</option>
+<option value="nano5">Passenger Wrong Location1</option>
+<option value="nano6">Passenger Wrong Location2</option>
+<option value="nano7">Passenger Wrong Location3</option>
+<option value="nano7">Passenger Wrong Location4</option>
+</select>
+</div>
+
+
+<button class="submit-btn">Send</button>
+</div>
+	
+
+
+    </div>
+
+	<div class="ph-btm-img">
+	<img src="images/inner-btm-bg.png"/>
+	</div>
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div id="myprofilemenus" class="modal fade menupopup" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      
+     
+    </div>
+
+  </div>
+</div>
+<script>
+jQuery(function($) {
+jQuery('select').selectBoxIt({ });
+});
+</script>
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+</body>
+</html>

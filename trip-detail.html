@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clap Me</title>
+<link href="css/style.css" type="text/css" rel="stylesheet">
+<link href="css/bootstrap.min.css" type="text/css" rel="stylesheet">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<link href="css/bootstrap-toggle.min.css" rel="stylesheet">
+<script src="js/bootstrap-toggle.min.js"></script>
+<style>
+
+</style>
+</head>
+
+<body>
+<div class="wrapper farecalculation">
+
+  <div class="container">
+  <header>
+  <a href="history.html" class="mainmenubtn"><img src="images/back.png"/>Trip Detail</a>
+  </header>
+    <div class="innerpage farecal-innerpage">
+	<div class="innermidbox">
+	<div class="farecalculation-cnt">
+
+<div class="fare-profilepic">
+<!--<h1 class="pay-title">Payable Amount</h1>-->
+<div class="fareprize total_amount"></div>
+
+<div class="kmmainbox-cont">	
+<div class="kmmainbox">
+<div class="km-box">
+<div class="km-box1">
+<span>Total Fare</span>
+<h1 class="total_price"></h1>
+</div>
+<div class="km-box1">
+<span>Discount Credit</span>
+<h1 class="discount_amount"></h1>
+</div>
+</div>
+
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>Total Distance</h1>
+</div>
+<div class="km-box1">
+<h1 class="total_distance"></h1>
+</div>
+</div>
+
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>Waiting Time</h1>
+</div>
+<div class="km-box1">
+<h1 class="waiting_time"></h1>
+</div>
+</div>
+
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>Waiting Time Cost</h1>
+</div>
+<div class="km-box1">
+<h1 class="waiting_cost"></h1>
+</div>
+</div>
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>From</h1>
+</div>
+<div class="km-box1">
+<h1 class="start_destination"></h1>
+</div>
+</div>
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>To</h1>
+</div>
+<div class="km-box1">
+<h1 class="end_destination"></h1>
+</div>
+</div>
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>Date time</h1>
+</div>
+<div class="km-box1">
+<h1 class="startdate"></h1>
+</div>
+</div>
+<div class="km-box fullfare">
+<div class="km-box1">
+<h1>Payment</h1>
+</div>
+<div class="km-box1">
+<h1 class="payment_status"></h1>
+</div>
+</div>
+<div class="km-box fullfare showratings">
+<div class="km-box1" style="width:45%;">
+<h1>Ratings</h1>
+</div>
+<div class="km-box1" style="width:55%;">
+<h1 class="rating_stars"></h1>
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+	
+
+</div>
+
+
+    </div>
+
+
+	</div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+
+</div>
+
+
+
+
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+<script type="text/javascript" src="js/config.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+	
+		var h=jQuery(window).height();
+		jQuery('.phonepage').css({'height':h+'px','overflow':'hidden'});
+	jQuery( document ).on( "mobileinit", function() {
+		jQuery.mobile.allowCrossDomainPages = true;
+	});
+	var contentType ="application/x-www-form-urlencoded; charset=utf-8";
+    if(window.XDomainRequest){contentType = "text/plain";}
+	jQuery.support.cors = true;
+	
+	var booking_id=gup('booking_id');
+	var trip_id=gup('trip_id');
+	if(trip_id!=null && jQuery.trim(trip_id)!='' && typeof trip_id!='undefined'){
+		jQuery('.mainmenubtn').attr('href','trip-in-progress.html?booking_id='+trip_id);
+	}
+	
+	var url=siteurl+'/api/driver/trips';
+	 jQuery.ajax({  
+	 type: 'POST',  
+	 url: url,           
+	 dataType: 'json',  
+	 data: {uid:uid,booking_id:booking_id,tripdetail:1}, 
+	 beforeSend: function() {
+		
+	 },		
+	 complete: function() {
+		
+	 }, 
+	 crossDomain: true,  
+	 success: function(res) { 
+		if(res['trip'])
+		{
+			var distance=parseFloat(res['trip']['totaldistance']).toFixed(2);
+			var discount=parseFloat(res['trip']['discount_price']);
+			var vtype_price=parseFloat(res['trip']['vtype_price']);
+			if(discount>0){
+				jQuery('.total_amount').html('Rs. '+(parseFloat(res['trip']['total_amount'])+vtype_price-discount).toFixed(2));
+			}
+			else{
+				jQuery('.total_amount').html('Rs. '+(parseFloat(res['trip']['total_amount'])+vtype_price).toFixed(2));
+			}
+			jQuery('.total_distance').html(distance+'KM');
+			jQuery('.waiting_time').html(res['trip']['waiting_time']);
+			jQuery('.waiting_cost').html('Rs. '+parseFloat(res['trip']['waittime_price']).toFixed(2));
+			jQuery('.total_price').html('Rs. '+(parseFloat(res['trip']['total_price'])+vtype_price).toFixed(2));
+			jQuery('.discount_amount').html('Rs. '+parseFloat(res['trip']['discount_price']).toFixed(2));
+			jQuery('.start_destination').html(res['trip']['start_destination']);
+			jQuery('.end_destination').html(res['trip']['end_destination']);
+			jQuery('.startdate').html(res['trip']['startdate']);
+			jQuery('.payment_status').html(res['trip']['payment_status']);
+			var ratings=res['trip']['rating'];
+			var feedback=res['trip']['feedback'];
+			if(jQuery.trim(ratings)!='' && parseInt(ratings)>0){
+				var remaining=(5-ratings);
+				var rat='<ul class="rating-ul">';
+				for(i=0;i<ratings;i++){
+                  rat+='<li><a href="javascript;;"><img src="images/star.png"/></a></li>';
+				}
+				for(i=0;i<remaining;i++){ 
+                  rat+='<li><a href="javascript;;"><img src="images/star1.png"/></a></li>';
+				} 
+                rat+='</ul>';
+				jQuery('.rating_stars').html(rat);
+				
+				jQuery('.showratings').append('<div class="km-box1" style="width:45%;"><h1>Comment</h1></div><div class="km-box1" style="width:55%;"><h1>'+feedback+'</h1></div>');
+				
+			}
+			else{jQuery('.showratings').html('<div class="km-box1"><h1>Rating</h1></div><div class="km-box1"><h1>pending</h1></div>');}
+			if(res['trip']['trip_status']=='1'){
+			jQuery('.showratings').html('<div class="accepted-time" style=""><a href="pickuppassenger.html?booking_id='+booking_id+'"><button class="submit-btn trip-accep">Go for trip</button></a></div>');
+			}
+			else if(res['trip']['trip_status']=='3'){
+			jQuery('.showratings').parent('.fullfare').html('<div class="accepted-time" style=""><a href="waiting-for-passenger.html?booking_id='+booking_id+'"><button class="submit-btn trip-accep">Go for trip</button></a></div>');
+			}
+			else if(res['trip']['trip_status']=='4'){
+			jQuery('.showratings').parent('.fullfare').html('<div class="accepted-time" style=""><a href="trip-in-progress.html?booking_id='+booking_id+'"><button class="submit-btn trip-accep">Go for trip</button></a></div>');
+			}
+		}else {				
+			jQuery('body .showmessage').remove();
+			var html='<div class="showmessage">There is no trip.</div>';
+			jQuery('body').append(html);
+			setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+			
+		}
+		
+		return false; 
+	 },  
+	 error: function(response, d, a){
+		jQuery('body .showmessage').remove();
+		var html='<div class="showmessage">Server Error.</div>';
+		jQuery('body').append(html);
+		setTimeout(function(){jQuery('.showmessage').slideUp();},1000);
+		return false; 
+	 }
+			
+   });
+   
+   
+	
+	
+});
+
+	
+</script>
+
+</body>
+</html>
